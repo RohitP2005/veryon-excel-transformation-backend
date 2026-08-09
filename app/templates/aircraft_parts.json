@@ -1,0 +1,28 @@
+{
+  "id": "aircraft_parts",
+  "name": "Aircraft Parts",
+  "description": "Standard aircraft parts inventory import template.",
+  "sheet_name": "Aircraft Parts",
+  "columns": [
+    "Part Number",
+    "Part Description",
+    "Manufacturer",
+    "Condition",
+    "Quantity",
+    "Unit Cost",
+    "Total Cost"
+  ],
+  "required_columns": ["Part Number", "Part Description"],
+  "output_format": {
+    "header_style": { "bold": true, "fill": "DDEBF7" },
+    "column_widths": {
+      "Part Number": 18,
+      "Part Description": 35,
+      "Manufacturer": 20,
+      "Condition": 15,
+      "Quantity": 12,
+      "Unit Cost": 12,
+      "Total Cost": 12
+    }
+  }
+}

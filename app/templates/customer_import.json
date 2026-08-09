@@ -1,0 +1,19 @@
+{
+  "id": "customer_import",
+  "name": "Customer Import",
+  "description": "Standard customer import template used to onboard customer records.",
+  "sheet_name": "Customers",
+  "columns": ["Customer ID", "Customer Name", "Email", "Phone", "Address", "Country"],
+  "required_columns": ["Customer ID", "Customer Name"],
+  "output_format": {
+    "header_style": { "bold": true, "fill": "D9E1F2" },
+    "column_widths": {
+      "Customer ID": 15,
+      "Customer Name": 25,
+      "Email": 30,
+      "Phone": 18,
+      "Address": 35,
+      "Country": 18
+    }
+  }
+}

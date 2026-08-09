@@ -1,0 +1,18 @@
+{
+  "id": "employee",
+  "name": "Employee",
+  "description": "Standard employee roster import template.",
+  "sheet_name": "Employees",
+  "columns": ["Employee ID", "Full Name", "Department", "Email", "Hire Date"],
+  "required_columns": ["Employee ID", "Full Name"],
+  "output_format": {
+    "header_style": { "bold": true, "fill": "FCE4D6" },
+    "column_widths": {
+      "Employee ID": 15,
+      "Full Name": 25,
+      "Department": 20,
+      "Email": 30,
+      "Hire Date": 15
+    }
+  }
+}
