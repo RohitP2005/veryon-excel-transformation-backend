@@ -1,0 +1,46 @@
+{
+  "id": "model_part",
+  "name": "Model Part",
+  "description": "Part numbers applicable to each model, including default-part flags and serial number ranges.",
+  "sheet_name": "Model Parts",
+  "columns": [
+    "Model",
+    "PartNumber",
+    "IsDefault",
+    "ApplicableAircraftTypes",
+    "AircraftMSN",
+    "AircraftMSNFrom",
+    "AircraftMSNTo",
+    "HigherAssemblySerialNumber",
+    "HigherAssemblySerialNumberFrom",
+    "HigherAssemblySerialNumberTo",
+    "Location",
+    "Position",
+    "Error"
+  ],
+  "required_columns": [
+    "Model",
+    "PartNumber"
+  ],
+  "output_format": {
+    "header_style": {
+      "bold": true,
+      "fill": "DDEBF7"
+    },
+    "column_widths": {
+      "Model": 12,
+      "PartNumber": 12,
+      "IsDefault": 12,
+      "ApplicableAircraftTypes": 25,
+      "AircraftMSN": 13,
+      "AircraftMSNFrom": 17,
+      "AircraftMSNTo": 15,
+      "HigherAssemblySerialNumber": 28,
+      "HigherAssemblySerialNumberFrom": 32,
+      "HigherAssemblySerialNumberTo": 30,
+      "Location": 12,
+      "Position": 12,
+      "Error": 12
+    }
+  }
+}

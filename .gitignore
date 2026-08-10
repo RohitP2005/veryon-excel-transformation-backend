@@ -12,3 +12,6 @@ app/uploads/*
 !app/uploads/.gitkeep
 app/output/*
 !app/output/.gitkeep
+
+# Raw customer/source workbooks used to derive app/templates/*.json — never commit real data.
+app/templates/*.xlsx

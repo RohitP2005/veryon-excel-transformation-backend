@@ -1,0 +1,67 @@
+{
+  "id": "last_done_maintenance_task",
+  "name": "Last Done Maintenance Task",
+  "description": "Last-accomplished maintenance task records per component, including thresholds/intervals and next-due data.",
+  "sheet_name": "Last Done Tasks",
+  "columns": [
+    "SerialNo",
+    "PartNumber",
+    "Software",
+    "SoftwareVersion",
+    "MaintenanceTask",
+    "Title",
+    "Issuer",
+    "Type",
+    "Program",
+    "Revision",
+    "Zone",
+    "LastAction",
+    "NotApplicable",
+    "UpdatedNotConfirmed",
+    "Remarks",
+    "UseThreshold",
+    "UseInterval",
+    "TSCO",
+    "LastDoneAtHigherAssembly",
+    "LastDoneAtComponent",
+    "LastDoneDate",
+    "NextDueOnHigherAssembly",
+    "NextDueAtComponent"
+  ],
+  "required_columns": [
+    "SerialNo",
+    "PartNumber",
+    "MaintenanceTask"
+  ],
+  "output_format": {
+    "header_style": {
+      "bold": true,
+      "fill": "E2EFDA"
+    },
+    "column_widths": {
+      "SerialNo": 12,
+      "PartNumber": 12,
+      "Software": 12,
+      "SoftwareVersion": 17,
+      "MaintenanceTask": 17,
+      "Title": 12,
+      "Issuer": 12,
+      "Type": 12,
+      "Program": 12,
+      "Revision": 12,
+      "Zone": 12,
+      "LastAction": 12,
+      "NotApplicable": 15,
+      "UpdatedNotConfirmed": 21,
+      "Remarks": 12,
+      "UseThreshold": 14,
+      "UseInterval": 13,
+      "TSCO": 12,
+      "LastDoneAtHigherAssembly": 26,
+      "LastDoneAtComponent": 21,
+      "LastDoneDate": 14,
+      "NextDueOnHigherAssembly": 25,
+      "NextDueAtComponent": 20
+    }
+  }
+}

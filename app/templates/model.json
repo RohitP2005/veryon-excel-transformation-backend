@@ -1,0 +1,36 @@
+{
+  "id": "model",
+  "name": "Model",
+  "description": "Aircraft/component model definitions: model type, manufacturer, ICAO model, and applicable aircraft types.",
+  "sheet_name": "Models",
+  "columns": [
+    "ModelType",
+    "Model",
+    "Description",
+    "Manufacturer",
+    "ICAOModel",
+    "LifeCode",
+    "ModelVersion",
+    "AircraftType"
+  ],
+  "required_columns": [
+    "ModelType",
+    "Model"
+  ],
+  "output_format": {
+    "header_style": {
+      "bold": true,
+      "fill": "FFF2CC"
+    },
+    "column_widths": {
+      "ModelType": 12,
+      "Model": 12,
+      "Description": 13,
+      "Manufacturer": 14,
+      "ICAOModel": 12,
+      "LifeCode": 12,
+      "ModelVersion": 14,
+      "AircraftType": 14
+    }
+  }
+}

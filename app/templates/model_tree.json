@@ -1,0 +1,28 @@
+{
+  "id": "model_tree",
+  "name": "Model Tree",
+  "description": "Model hierarchy tree mapping each model to its higher-assembly model, location, and position.",
+  "sheet_name": "Model Tree",
+  "columns": [
+    "Model",
+    "HigherModel",
+    "Location",
+    "Position"
+  ],
+  "required_columns": [
+    "Model",
+    "HigherModel"
+  ],
+  "output_format": {
+    "header_style": {
+      "bold": true,
+      "fill": "F4CCCC"
+    },
+    "column_widths": {
+      "Model": 12,
+      "HigherModel": 13,
+      "Location": 12,
+      "Position": 12
+    }
+  }
+}

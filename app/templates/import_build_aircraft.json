@@ -1,0 +1,62 @@
+{
+  "id": "import_build_aircraft",
+  "name": "Import Build Aircraft",
+  "description": "Aircraft component build/installation records: higher-assembly hierarchy, times/cycles since new or overhaul, and install/manufacture dates.",
+  "sheet_name": "Aircraft Build",
+  "columns": [
+    "Aircraft",
+    "Higher Model",
+    "Higher Part Number",
+    "Higher Serial Number",
+    "Model",
+    "Update Model",
+    "Part Number",
+    "Serial Number",
+    "Location",
+    "Position",
+    "TSN",
+    "TSO",
+    "TSLSV",
+    "Tech Log/Sector",
+    "FitLifeTotals",
+    "Attach Date",
+    "Component Manufacture Date",
+    "Component FirstInstallation Date",
+    "Component Certificate Date",
+    "Error Log"
+  ],
+  "required_columns": [
+    "Aircraft",
+    "Model",
+    "Part Number",
+    "Serial Number"
+  ],
+  "output_format": {
+    "header_style": {
+      "bold": true,
+      "fill": "D9E1F2"
+    },
+    "column_widths": {
+      "Aircraft": 12,
+      "Higher Model": 14,
+      "Higher Part Number": 20,
+      "Higher Serial Number": 22,
+      "Model": 12,
+      "Update Model": 14,
+      "Part Number": 13,
+      "Serial Number": 15,
+      "Location": 12,
+      "Position": 12,
+      "TSN": 12,
+      "TSO": 12,
+      "TSLSV": 12,
+      "Tech Log/Sector": 17,
+      "FitLifeTotals": 15,
+      "Attach Date": 13,
+      "Component Manufacture Date": 28,
+      "Component FirstInstallation Date": 34,
+      "Component Certificate Date": 28,
+      "Error Log": 12
+    }
+  }
+}

@@ -13,24 +13,21 @@ def _upload(client, workbook_bytes, filename):
     return response.json()["upload_id"]
 
 
-def test_generate_customer_import_with_concatenate(client, customer_workbook_bytes):
+def test_generate_model_tree_with_concatenate(client, customer_workbook_bytes):
     upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
 
     payload = {
-        "template_id": "customer_import",
+        "template_id": "model_tree",
         "upload_id": upload_id,
         "mappings": [
-            {"destination": "Customer ID", "sources": ["ID"], "operation": "copy"},
-            {"destination": "Customer Name", "sources": ["Name"], "operation": "copy"},
-            {"destination": "Email", "sources": ["Mail"], "operation": "copy"},
-            {"destination": "Phone", "sources": ["Phone Number"], "operation": "copy"},
+            {"destination": "Model", "sources": ["ID"], "operation": "copy"},
+            {"destination": "HigherModel", "sources": ["Name"], "operation": "copy"},
             {
-                "destination": "Address",
+                "destination": "Location",
                 "sources": ["Addr1", "Addr2"],
                 "operation": "concatenate",
                 "options": {"separator": ", "},
             },
-            {"destination": "Country", "sources": ["Nation"], "operation": "copy"},
         ],
     }
     response = client.post("/api/generate", json=payload)
@@ -43,15 +40,13 @@ def test_generate_with_formula_operation(client, pricing_workbook_bytes):
     upload_id = _upload(client, pricing_workbook_bytes, "pricing.xlsx")
 
     payload = {
-        "template_id": "inventory",
+        "template_id": "model_tree",
         "upload_id": upload_id,
         "mappings": [
-            {"destination": "SKU", "sources": [], "operation": "constant", "options": {"value": "SKU-1"}},
-            {"destination": "Product Name", "sources": [], "operation": "constant", "options": {"value": "Widget"}},
-            {"destination": "Quantity", "sources": ["Quantity"], "operation": "copy"},
-            {"destination": "Unit Price", "sources": ["Price"], "operation": "copy"},
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
             {
-                "destination": "Total",
+                "destination": "Position",
                 "sources": ["Price", "Quantity"],
                 "operation": "formula",
                 "formula": "{{Price}} * {{Quantity}}",
@@ -66,9 +61,9 @@ def test_generate_returns_400_for_invalid_mapping(client, customer_workbook_byte
     upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
 
     payload = {
-        "template_id": "customer_import",
+        "template_id": "model_tree",
         "upload_id": upload_id,
-        "mappings": [{"destination": "Email", "sources": ["Mail"], "operation": "copy"}],
+        "mappings": [{"destination": "Location", "sources": ["Addr1"], "operation": "copy"}],
     }
     response = client.post("/api/generate", json=payload)
     assert response.status_code == 400
@@ -85,6 +80,6 @@ def test_generate_returns_404_for_unknown_template(client, customer_workbook_byt
 
 
 def test_generate_returns_404_for_unknown_upload(client):
-    payload = {"template_id": "customer_import", "upload_id": "does-not-exist", "mappings": []}
+    payload = {"template_id": "model_tree", "upload_id": "does-not-exist", "mappings": []}
     response = client.post("/api/generate", json=payload)
     assert response.status_code == 404
