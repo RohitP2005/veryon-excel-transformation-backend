@@ -19,6 +19,12 @@ class JobNotFoundError(Exception):
         self.job_id = job_id
 
 
+class SavedFormulaNotFoundError(Exception):
+    def __init__(self, formula_id: str):
+        super().__init__(f"Saved formula '{formula_id}' not found")
+        self.formula_id = formula_id
+
+
 class MappingValidationError(Exception):
     def __init__(self, errors: list[dict[str, str]]):
         super().__init__("Mapping validation failed")

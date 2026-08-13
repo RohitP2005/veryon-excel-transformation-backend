@@ -3,11 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from app.api import generate, health, templates, upload
+from app.api import formulas, generate, health, templates, upload
 from app.core.config import settings
 from app.core.exceptions import (
     JobNotFoundError,
     MappingValidationError,
+    SavedFormulaNotFoundError,
     TemplateNotFoundError,
     UploadNotFoundError,
 )
@@ -36,6 +37,7 @@ app.include_router(health.router)
 app.include_router(templates.router)
 app.include_router(upload.router)
 app.include_router(generate.router)
+app.include_router(formulas.router)
 
 
 @app.exception_handler(MappingValidationError)
@@ -55,6 +57,11 @@ async def upload_not_found_handler(request: Request, exc: UploadNotFoundError) -
 
 @app.exception_handler(JobNotFoundError)
 async def job_not_found_handler(request: Request, exc: JobNotFoundError) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(SavedFormulaNotFoundError)
+async def saved_formula_not_found_handler(request: Request, exc: SavedFormulaNotFoundError) -> JSONResponse:
     return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 

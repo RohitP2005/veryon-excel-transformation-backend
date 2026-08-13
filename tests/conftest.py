@@ -5,11 +5,20 @@ from fastapi.testclient import TestClient
 from openpyxl import Workbook
 
 from app.main import app
+from app.models.formula_store import formula_store
 
 
 @pytest.fixture()
 def client() -> TestClient:
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _reset_formula_store():
+    """The formula store is a real file on disk (module-level singleton) - keep tests isolated."""
+    formula_store._write([])
+    yield
+    formula_store._write([])
 
 
 def _build_workbook(headers: list[str], rows: list[list]) -> bytes:

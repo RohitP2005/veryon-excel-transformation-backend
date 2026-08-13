@@ -79,3 +79,15 @@ def _eval_node(node: ast.AST, var_names: dict[str, str], row_values: dict[str, A
         except (TypeError, ValueError) as exc:
             raise FormulaError(f"Column '{column}' value is not numeric: {value!r}") from exc
     raise FormulaError(f"Disallowed expression in formula: {formula}")
+
+
+def validate_formula_syntax(formula: str) -> None:
+    """Check that a formula is safe/well-formed before it's saved, without real row data.
+
+    Substitutes every placeholder with a dummy numeric value and runs it through the same
+    restricted evaluator used at generate time, so anything that would be rejected later
+    (disallowed syntax, function calls, non-arithmetic expressions, etc.) is caught immediately.
+    """
+    placeholders = extract_placeholders(formula)
+    dummy_values = dict.fromkeys(placeholders, 1.0)
+    evaluate_formula(formula, dummy_values)

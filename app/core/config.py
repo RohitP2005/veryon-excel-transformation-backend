@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     upload_dir: Path = Path(tempfile.gettempdir()) / "veryon-etl" / "uploads"
     output_dir: Path = Path(tempfile.gettempdir()) / "veryon-etl" / "output"
     templates_dir: Path = app_dir / "templates"
+    # Flat JSON file backing the saved/reusable formula library (MVP: no DB yet).
+    formulas_file: Path = Path(tempfile.gettempdir()) / "veryon-etl" / "saved_formulas.json"
 
     # openpyxl only reads the modern .xlsx format, so legacy .xls is intentionally unsupported.
     allowed_upload_extensions: tuple[str, ...] = (".xlsx",)

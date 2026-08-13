@@ -42,7 +42,7 @@ pytest --cov=app
 
 ```
 app/
-├── api/            # FastAPI routers (health, templates, upload, generate)
+├── api/            # FastAPI routers (health, templates, upload, generate, formulas)
 ├── services/       # etl_service.py — orchestrates the generate pipeline
 ├── etl/
 │   ├── readers/     # Excel ingestion (pandas/openpyxl)
@@ -50,7 +50,7 @@ app/
 │   ├── operations/  # One class per transformation + a registry
 │   ├── parser/      # Safe formula placeholder substitution/evaluation
 │   └── validators/  # Mapping business-rule validation
-├── models/         # In-memory template registry + upload store (MVP, no DB yet)
+├── models/         # In-memory template registry, upload store, and saved-formula store (MVP, no DB yet)
 ├── schemas/        # Pydantic request/response models
 ├── templates/      # Built-in template definitions (JSON)
 ├── uploads/        # Uploaded files (gitignored contents)
@@ -67,5 +67,8 @@ tests/
   rejected to avoid macro execution risk).
 - Template and upload state is kept in-process memory — restarting the server clears uploads
   (a database is a listed future-stack item).
+- Saved formulas (the reusable-operation library) are persisted to a flat JSON file under the
+  system temp dir — durable across restarts on a traditional host, but ephemeral per-instance
+  on serverless deploys (same caveat as uploads/output; see `ETL_FORMULAS_FILE`).
 - `/api/generate` runs synchronously; large files should eventually move to a background job
   (Celery, per the future stack).
