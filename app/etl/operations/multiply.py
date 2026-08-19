@@ -3,6 +3,8 @@ from typing import Any
 
 class MultiplyOperation:
     def execute(self, values: list[Any], *, options: dict[str, Any]) -> Any:
+        if not values:
+            return None
         result = 1.0
         for value in values:
             result *= float(value) if value is not None else 0.0

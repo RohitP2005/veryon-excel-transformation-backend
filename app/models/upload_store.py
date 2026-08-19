@@ -10,6 +10,7 @@ class UploadRecord:
     file_path: Path
     columns: list[str]
     row_count: int
+    header_row: int = 1
 
 
 class UploadStore:

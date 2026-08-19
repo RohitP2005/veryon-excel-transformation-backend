@@ -1,8 +1,10 @@
+from app.etl.operations.append_text import AppendTextOperation
 from app.etl.operations.base import BaseOperation
 from app.etl.operations.concatenate import ConcatenateOperation
 from app.etl.operations.constant import ConstantOperation
 from app.etl.operations.copy import CopyOperation
 from app.etl.operations.date_format import DateFormatOperation
+from app.etl.operations.duration_format import DurationFormatOperation
 from app.etl.operations.formula import FormulaOperation
 from app.etl.operations.multiply import MultiplyOperation
 from app.etl.operations.replace import ReplaceOperation
@@ -21,6 +23,8 @@ _REGISTRY: dict[Operation, BaseOperation] = {
     Operation.REPLACE: ReplaceOperation(),
     Operation.DATE_FORMAT: DateFormatOperation(),
     Operation.CONSTANT: ConstantOperation(),
+    Operation.APPEND_TEXT: AppendTextOperation(),
+    Operation.DURATION_FORMAT: DurationFormatOperation(),
 }
 
 

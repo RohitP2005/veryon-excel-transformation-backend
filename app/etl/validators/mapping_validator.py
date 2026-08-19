@@ -4,15 +4,6 @@ from app.etl.parser.formula_parser import extract_placeholders
 from app.schemas.mapping import MappingRule, Operation
 from app.schemas.template import TemplateDetail
 
-_SINGLE_SOURCE_OPERATIONS = (
-    Operation.COPY,
-    Operation.TRIM,
-    Operation.UPPERCASE,
-    Operation.LOWERCASE,
-    Operation.REPLACE,
-    Operation.DATE_FORMAT,
-)
-
 
 @dataclass
 class MappingError:
@@ -26,7 +17,14 @@ class MappingError:
 def validate_mappings(
     mappings: list[MappingRule], template: TemplateDetail, upload_columns: list[str]
 ) -> list[MappingError]:
-    """Business-rule validation beyond Pydantic: destinations, sources, and per-operation arity."""
+    """Business-rule validation beyond Pydantic.
+
+    Deliberately permissive about *missing* sources: a customer file not having a column for
+    some destination (even a "required" one) must not block generation - that column is simply
+    left blank in the output (see etl_service). What's still validated are actual mistakes the
+    user can fix: unknown destinations/sources, duplicate mappings, and incomplete operation
+    configuration (e.g. picking "formula" but leaving it empty).
+    """
     errors: list[MappingError] = []
     seen_destinations: set[str] = set()
     upload_columns_set = set(upload_columns)
@@ -46,16 +44,12 @@ def validate_mappings(
             if source not in upload_columns_set:
                 errors.append(MappingError(rule.destination, f"Unknown source column '{source}'"))
 
-        if rule.operation in _SINGLE_SOURCE_OPERATIONS and len(rule.sources) != 1:
-            errors.append(
-                MappingError(rule.destination, f"'{rule.operation.value}' requires exactly 1 source column")
-            )
-        elif rule.operation == Operation.CONCATENATE and len(rule.sources) < 2:
-            errors.append(MappingError(rule.destination, "Concatenate requires at least 2 source columns"))
-        elif rule.operation == Operation.MULTIPLY and len(rule.sources) < 1:
-            errors.append(MappingError(rule.destination, "Multiply requires at least 1 source column"))
-        elif rule.operation == Operation.CONSTANT and "value" not in rule.options:
+        if rule.operation == Operation.CONSTANT and not str(rule.options.get("value", "")).strip():
             errors.append(MappingError(rule.destination, "Constant operation requires options.value"))
+        elif rule.operation == Operation.REPLACE and not str(rule.options.get("find", "")):
+            errors.append(MappingError(rule.destination, "Replace operation requires options.find"))
+        elif rule.operation == Operation.DATE_FORMAT and not str(rule.options.get("format", "")).strip():
+            errors.append(MappingError(rule.destination, "Date format operation requires options.format"))
         elif rule.operation == Operation.FORMULA:
             if not rule.formula:
                 errors.append(MappingError(rule.destination, "Formula operation requires a 'formula' string"))
@@ -66,8 +60,5 @@ def validate_mappings(
                             MappingError(rule.destination, f"Formula references unknown column '{placeholder}'")
                         )
 
-    for column in template.required_columns:
-        if column not in seen_destinations:
-            errors.append(MappingError(column, "Required destination column is not mapped"))
-
     return errors
+

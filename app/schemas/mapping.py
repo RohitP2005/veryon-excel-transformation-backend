@@ -15,6 +15,8 @@ class Operation(str, Enum):
     REPLACE = "replace"
     DATE_FORMAT = "date_format"
     CONSTANT = "constant"
+    APPEND_TEXT = "append_text"
+    DURATION_FORMAT = "duration_format"
 
 
 class MappingRule(BaseModel):

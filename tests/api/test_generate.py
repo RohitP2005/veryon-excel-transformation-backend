@@ -63,13 +63,51 @@ def test_generate_returns_400_for_invalid_mapping(client, customer_workbook_byte
     payload = {
         "template_id": "model_tree",
         "upload_id": upload_id,
-        "mappings": [{"destination": "Location", "sources": ["Addr1"], "operation": "copy"}],
+        "mappings": [{"destination": "Location", "sources": ["DoesNotExist"], "operation": "copy"}],
     }
     response = client.post("/api/generate", json=payload)
     assert response.status_code == 400
     body = response.json()
     assert body["detail"] == "Mapping validation failed"
     assert body["errors"]
+
+
+def test_generate_leaves_unmapped_required_column_blank_instead_of_blocking(client, customer_workbook_bytes):
+    """A required column (Model/HigherModel) with no matching customer column must not block
+    generation - it should just come through blank in the output."""
+    upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [{"destination": "Location", "sources": ["Addr1"], "operation": "copy"}],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
+def test_generate_appends_prefix_suffix_and_formats_duration(client, customer_workbook_bytes):
+    upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+            {
+                "destination": "Location",
+                "sources": ["ID", "Name"],
+                "operation": "concatenate",
+                "options": {
+                    "separator": ", ",
+                    "formats": [{"duration_format": True, "suffix": " FH"}, {"suffix": " FC"}],
+                },
+            },
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
 
 
 def test_generate_returns_404_for_unknown_template(client, customer_workbook_bytes):

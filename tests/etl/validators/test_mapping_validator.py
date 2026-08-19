@@ -24,11 +24,11 @@ def test_valid_mapping_has_no_errors():
     assert validate_mappings(mappings, TEMPLATE, UPLOAD_COLUMNS) == []
 
 
-def test_missing_required_destination_is_reported():
+def test_missing_required_destination_is_not_blocking():
+    """Required is metadata-only now - an unmapped required column must not error (see etl_service,
+    which fills it in blank instead of failing the whole generate request)."""
     mappings = [MappingRule(destination="Email", sources=["Mail"], operation=Operation.COPY)]
-    errors = validate_mappings(mappings, TEMPLATE, UPLOAD_COLUMNS)
-    messages = [e.message for e in errors]
-    assert any("Required destination column" in m for m in messages)
+    assert validate_mappings(mappings, TEMPLATE, UPLOAD_COLUMNS) == []
 
 
 def test_unknown_source_column_is_reported():
@@ -40,14 +40,26 @@ def test_unknown_source_column_is_reported():
     assert any("Unknown source column" in e.message for e in errors)
 
 
-def test_concatenate_requires_two_sources():
+def test_concatenate_with_fewer_than_two_sources_is_not_blocking():
+    """Arity is no longer enforced - a customer file might only have one of the source columns."""
     mappings = [
         MappingRule(destination="Customer ID", sources=["ID"], operation=Operation.COPY),
         MappingRule(destination="Customer Name", sources=["Name"], operation=Operation.COPY),
         MappingRule(destination="Address", sources=["Addr1"], operation=Operation.CONCATENATE),
     ]
+    assert validate_mappings(mappings, TEMPLATE, UPLOAD_COLUMNS) == []
+
+
+def test_copy_with_no_sources_is_not_blocking():
+    """The auto-seeded default row for an unmatched destination has 0 sources - must not block."""
+    mappings = [MappingRule(destination="Customer ID", sources=[], operation=Operation.COPY)]
+    assert validate_mappings(mappings, TEMPLATE, UPLOAD_COLUMNS) == []
+
+
+def test_constant_without_value_is_reported():
+    mappings = [MappingRule(destination="Customer ID", sources=[], operation=Operation.CONSTANT)]
     errors = validate_mappings(mappings, TEMPLATE, UPLOAD_COLUMNS)
-    assert any("at least 2 source columns" in e.message for e in errors)
+    assert any("options.value" in e.message for e in errors)
 
 
 def test_duplicate_destination_is_reported():

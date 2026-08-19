@@ -1,7 +1,9 @@
+from app.etl.operations.append_text import AppendTextOperation
 from app.etl.operations.concatenate import ConcatenateOperation
 from app.etl.operations.constant import ConstantOperation
 from app.etl.operations.copy import CopyOperation
 from app.etl.operations.date_format import DateFormatOperation
+from app.etl.operations.duration_format import DurationFormatOperation
 from app.etl.operations.multiply import MultiplyOperation
 from app.etl.operations.replace import ReplaceOperation
 from app.etl.operations.text_case import LowercaseOperation, UppercaseOperation
@@ -32,6 +34,42 @@ def test_concatenate_default_separator_is_space():
 
 def test_multiply_operation_computes_product():
     assert MultiplyOperation().execute([10, 3], options={}) == 30.0
+
+
+def test_multiply_operation_with_no_sources_returns_none():
+    assert MultiplyOperation().execute([], options={}) is None
+
+
+def test_concatenate_with_formats_applies_duration_and_suffix_per_source():
+    result = ConcatenateOperation().execute(
+        ["12530", "4321"],
+        options={
+            "separator": ", ",
+            "formats": [{"duration_format": True, "suffix": " FH"}, {"suffix": " FC"}],
+        },
+    )
+    assert result == "12530:00 FH, 4321 FC"
+
+
+def test_append_text_operation_wraps_value_with_prefix_and_suffix():
+    result = AppendTextOperation().execute(["12530:00"], options={"suffix": " FH"})
+    assert result == "12530:00 FH"
+
+
+def test_append_text_operation_returns_none_for_missing_value():
+    assert AppendTextOperation().execute([], options={"suffix": " FH"}) is None
+
+
+def test_duration_format_appends_zero_minutes_for_whole_hours():
+    assert DurationFormatOperation().execute(["12530"], options={}) == "12530:00"
+
+
+def test_duration_format_converts_decimal_hours_to_minutes():
+    assert DurationFormatOperation().execute([12530.5], options={}) == "12530:30"
+
+
+def test_duration_format_leaves_already_formatted_value_untouched():
+    assert DurationFormatOperation().execute(["12530:15"], options={}) == "12530:15"
 
 
 def test_replace_operation_substitutes_text():

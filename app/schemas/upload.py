@@ -9,3 +9,4 @@ class UploadResponse(BaseModel):
     columns: list[str]
     sample_rows: list[dict[str, Any]]
     row_count: int
+    header_row: int

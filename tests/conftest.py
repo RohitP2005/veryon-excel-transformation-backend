@@ -46,3 +46,32 @@ def customer_workbook_bytes() -> bytes:
 @pytest.fixture()
 def pricing_workbook_bytes() -> bytes:
     return _build_workbook(headers=["Price", "Quantity"], rows=[[10.0, 3], [5.5, 2]])
+
+
+@pytest.fixture()
+def header_offset_workbook_bytes() -> bytes:
+    """Simulates a customer file with a title row before the real header row."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Fleet Report - Confidential"])
+    ws.append(["ID", "Name"])
+    ws.append([1, "Alice"])
+    ws.append([2, "Bob"])
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
+@pytest.fixture()
+def merged_data_workbook_bytes() -> bytes:
+    """Simulates a customer file where a data cell is merged across multiple rows (e.g. a
+    department shared by consecutive employees) - the follower row reads blank without unmerge."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Name", "Department"])
+    ws.append(["Alice", "Engineering"])
+    ws.append(["Bob", None])
+    ws.merge_cells("B2:B3")
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()

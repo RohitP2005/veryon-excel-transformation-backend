@@ -8,7 +8,7 @@ from loguru import logger
 from app.core.config import settings
 from app.core.exceptions import MappingValidationError, TemplateNotFoundError, UploadNotFoundError
 from app.etl.operations.registry import get_operation
-from app.etl.readers.excel_reader import read_excel_dataframe
+from app.etl.readers.excel_reader import read_excel_records
 from app.etl.validators.mapping_validator import validate_mappings
 from app.etl.writers.excel_writer import write_excel
 from app.models.template_registry import template_registry
@@ -29,8 +29,7 @@ def generate_output(request: GenerateRequest) -> tuple[str, Path, str]:
     if errors:
         raise MappingValidationError([e.to_dict() for e in errors])
 
-    df = read_excel_dataframe(upload.file_path)
-    rows = df.to_dict(orient="records")
+    _, rows = read_excel_records(upload.file_path, upload.header_row)
     output_columns: dict[str, list] = {}
 
     for rule in request.mappings:
@@ -46,6 +45,12 @@ def generate_output(request: GenerateRequest) -> tuple[str, Path, str]:
             for row in rows
         ]
         output_columns[rule.destination] = values
+
+    # Mapping a required column is optional now (see mapping_validator) - any template column
+    # the user didn't map at all still appears in the output, just blank, instead of blocking.
+    row_count = len(rows)
+    for column in template.columns:
+        output_columns.setdefault(column, [None] * row_count)
 
     output_df = pd.DataFrame(output_columns)
     ordered_columns = [c for c in template.columns if c in output_df.columns]
@@ -63,3 +68,4 @@ def generate_output(request: GenerateRequest) -> tuple[str, Path, str]:
         len(output_df.columns),
     )
     return job_id, output_path, output_filename
+
