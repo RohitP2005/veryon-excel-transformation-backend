@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import openpyxl
+from openpyxl.utils import get_column_letter
 
 
 def _load_unmerged_worksheet(file_path: Path):
@@ -75,3 +76,18 @@ def read_excel_records(file_path: Path, header_row: int = 1) -> tuple[list[str],
     """Read the full workbook as (columns, rows) for transformation."""
     ws = _load_unmerged_worksheet(file_path)
     return _worksheet_to_rows(ws, header_row)
+
+
+def read_raw_grid(file_path: Path, max_rows: int = 200) -> tuple[list[str], list[list[Any]]]:
+    """Read the entire sheet as a plain grid (spreadsheet-style "A"/"B"/"C" columns), ignoring
+    header_row entirely - used by the constant-value cell picker so the user can pick a value
+    from anywhere in the sheet, including rows above/below the chosen header row."""
+    ws = _load_unmerged_worksheet(file_path)
+    max_col = ws.max_column or 0
+    grid_columns = [get_column_letter(i) for i in range(1, max_col + 1)]
+
+    grid_rows: list[list[Any]] = []
+    for raw_row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, max_rows), values_only=True):
+        grid_rows.append([_normalize_cell(v) for v in raw_row])
+
+    return grid_columns, grid_rows

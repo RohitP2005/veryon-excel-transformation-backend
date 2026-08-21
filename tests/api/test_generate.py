@@ -110,6 +110,27 @@ def test_generate_appends_prefix_suffix_and_formats_duration(client, customer_wo
     assert response.status_code == 200
 
 
+def test_generate_with_duration_pair_merge_operation(client, pricing_workbook_bytes):
+    """Mirrors the TSN/CSN example: extract+format the first value, suffix both, merge."""
+    upload_id = _upload(client, pricing_workbook_bytes, "pricing.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+            {
+                "destination": "Position",
+                "sources": ["Price", "Quantity"],
+                "operation": "duration_pair_merge",
+            },
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
 def test_generate_returns_404_for_unknown_template(client, customer_workbook_bytes):
     upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
     payload = {"template_id": "does-not-exist", "upload_id": upload_id, "mappings": []}

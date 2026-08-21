@@ -4,6 +4,7 @@ from app.etl.operations.constant import ConstantOperation
 from app.etl.operations.copy import CopyOperation
 from app.etl.operations.date_format import DateFormatOperation
 from app.etl.operations.duration_format import DurationFormatOperation
+from app.etl.operations.duration_pair_merge import DurationPairMergeOperation
 from app.etl.operations.multiply import MultiplyOperation
 from app.etl.operations.replace import ReplaceOperation
 from app.etl.operations.text_case import LowercaseOperation, UppercaseOperation
@@ -70,6 +71,25 @@ def test_duration_format_converts_decimal_hours_to_minutes():
 
 def test_duration_format_leaves_already_formatted_value_untouched():
     assert DurationFormatOperation().execute(["12530:15"], options={}) == "12530:15"
+
+
+def test_duration_pair_merge_matches_tsn_csn_example():
+    result = DurationPairMergeOperation().execute([12530, 4321], options={})
+    assert result == "12530:00 FH, 4321 FC"
+
+
+def test_duration_pair_merge_uses_custom_suffixes_and_separator():
+    result = DurationPairMergeOperation().execute(
+        ["100:30", "50"],
+        options={"separator": " | ", "first_suffix": " Hrs", "second_suffix": " Cyc"},
+    )
+    assert result == "100:30 Hrs | 50 Cyc"
+
+
+def test_duration_pair_merge_skips_missing_values():
+    assert DurationPairMergeOperation().execute([None, 4321], options={}) == "4321 FC"
+    assert DurationPairMergeOperation().execute([12530], options={}) == "12530:00 FH"
+    assert DurationPairMergeOperation().execute([], options={}) == ""
 
 
 def test_replace_operation_substitutes_text():

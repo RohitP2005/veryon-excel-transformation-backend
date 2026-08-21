@@ -17,6 +17,7 @@ class Operation(str, Enum):
     CONSTANT = "constant"
     APPEND_TEXT = "append_text"
     DURATION_FORMAT = "duration_format"
+    DURATION_PAIR_MERGE = "duration_pair_merge"
 
 
 class MappingRule(BaseModel):
