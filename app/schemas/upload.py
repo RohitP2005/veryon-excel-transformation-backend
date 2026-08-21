@@ -10,3 +10,7 @@ class UploadResponse(BaseModel):
     sample_rows: list[dict[str, Any]]
     row_count: int
     header_row: int
+    # Whole-sheet grid (spreadsheet-style "A"/"B"/"C" columns), independent of header_row - lets
+    # the frontend's constant-value cell picker show the entire sheet, not just the parsed data.
+    grid_columns: list[str]
+    grid_rows: list[list[Any]]

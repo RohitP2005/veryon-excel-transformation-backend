@@ -16,6 +16,30 @@ def test_upload_valid_excel_returns_columns_and_preview(client, customer_workboo
     assert len(body["sample_rows"]) == 2
     assert body["upload_id"]
     assert body["header_row"] == 1
+    assert body["grid_columns"][:7] == ["A", "B", "C", "D", "E", "F", "G"]
+    assert body["grid_rows"][0] == ["ID", "Name", "Mail", "Phone Number", "Addr1", "Addr2", "Nation"]
+    assert body["grid_rows"][1][0] == 1
+
+
+def test_upload_grid_ignores_header_row_offset(client, header_offset_workbook_bytes):
+    """The raw grid must show the WHOLE sheet regardless of header_row - including the title
+    row above the real headers - so the cell picker can select any value in the sheet."""
+    response = client.post(
+        "/api/upload",
+        data={"header_row": "2"},
+        files={
+            "file": (
+                "fleet.xlsx",
+                header_offset_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["columns"] == ["ID", "Name"]  # parsed view still respects header_row
+    assert body["grid_rows"][0][0] == "Fleet Report - Confidential"  # raw grid does not
+    assert body["grid_rows"][1] == ["ID", "Name"]
 
 
 def test_upload_with_header_row_offset(client, header_offset_workbook_bytes):

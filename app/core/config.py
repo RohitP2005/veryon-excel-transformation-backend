@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     allowed_upload_extensions: tuple[str, ...] = (".xlsx",)
     max_upload_size_bytes: int = 10 * 1024 * 1024
     sample_row_count: int = 20
+    # Cap for the raw whole-sheet grid preview used by the constant-value cell picker.
+    raw_grid_row_count: int = 200
 
     # 8080/8081 = veryon-sheet-sorter's actual Lovable/Vite dev port (falls back to 8081+ if
     # 8080 is busy), 5173 = Vite default, 3000/3001 = other common TanStack Start ports.
