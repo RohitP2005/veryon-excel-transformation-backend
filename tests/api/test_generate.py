@@ -131,6 +131,36 @@ def test_generate_with_duration_pair_merge_operation(client, pricing_workbook_by
     assert response.status_code == 200
 
 
+def test_generate_uses_combined_higher_order_header_column(client, multi_level_header_workbook_bytes):
+    """Columns produced by a header_row_start range (e.g. "Engine 1 -> TSN") must be usable as
+    mapping sources at generate time, proving the same range is applied to the full read."""
+    response = client.post(
+        "/api/upload",
+        data={"header_row": "2", "header_row_start": "1"},
+        files={
+            "file": (
+                "engines.xlsx",
+                multi_level_header_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 200
+    upload_id = response.json()["upload_id"]
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+            {"destination": "Position", "sources": ["Engine 1 -> TSN"], "operation": "copy"},
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
 def test_generate_returns_404_for_unknown_template(client, customer_workbook_bytes):
     upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
     payload = {"template_id": "does-not-exist", "upload_id": upload_id, "mappings": []}

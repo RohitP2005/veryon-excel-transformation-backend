@@ -19,9 +19,10 @@ _XLSX_ZIP_MAGIC = b"PK\x03\x04"
 async def upload_excel(
     file: UploadFile = File(...),
     header_row: int = Form(1),
+    header_row_start: int | None = Form(None),
 ) -> UploadResponse:
     _validate_extension(file.filename)
-    _validate_header_row(header_row)
+    _validate_header_row(header_row, header_row_start)
     contents = await file.read()
     _validate_size(contents)
     _validate_content(contents)
@@ -32,7 +33,7 @@ async def upload_excel(
 
     try:
         columns, sample_rows, row_count = read_excel_preview(
-            destination, settings.sample_row_count, header_row
+            destination, settings.sample_row_count, header_row, header_row_start
         )
         grid_columns, grid_rows = read_raw_grid(destination, settings.raw_grid_row_count)
     except Exception as exc:
@@ -47,14 +48,16 @@ async def upload_excel(
             columns=columns,
             row_count=row_count,
             header_row=header_row,
+            header_row_start=header_row_start,
         )
     )
     logger.info(
-        "Upload stored upload_id={} rows={} columns={} header_row={}",
+        "Upload stored upload_id={} rows={} columns={} header_row={} header_row_start={}",
         upload_id,
         row_count,
         len(columns),
         header_row,
+        header_row_start,
     )
 
     return UploadResponse(
@@ -64,6 +67,7 @@ async def upload_excel(
         sample_rows=sample_rows,
         row_count=row_count,
         header_row=header_row,
+        header_row_start=header_row_start,
         grid_columns=grid_columns,
         grid_rows=grid_rows,
     )
@@ -74,9 +78,15 @@ def _validate_extension(filename: str | None) -> None:
         raise HTTPException(status_code=400, detail="Only .xlsx files are supported")
 
 
-def _validate_header_row(header_row: int) -> None:
+def _validate_header_row(header_row: int, header_row_start: int | None) -> None:
     if header_row < 1:
         raise HTTPException(status_code=400, detail="header_row must be 1 or greater")
+    if header_row_start is not None and header_row_start < 1:
+        raise HTTPException(status_code=400, detail="header_row_start must be 1 or greater")
+    if header_row_start is not None and header_row_start > header_row:
+        raise HTTPException(
+            status_code=400, detail="header_row_start must be less than or equal to header_row"
+        )
 
 
 def _validate_size(contents: bytes) -> None:

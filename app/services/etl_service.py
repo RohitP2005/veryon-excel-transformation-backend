@@ -29,7 +29,7 @@ def generate_output(request: GenerateRequest) -> tuple[str, Path, str]:
     if errors:
         raise MappingValidationError([e.to_dict() for e in errors])
 
-    _, rows = read_excel_records(upload.file_path, upload.header_row)
+    _, rows = read_excel_records(upload.file_path, upload.header_row, upload.header_row_start)
     output_columns: dict[str, list] = {}
 
     for rule in request.mappings:

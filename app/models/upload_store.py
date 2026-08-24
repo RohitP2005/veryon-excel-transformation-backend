@@ -11,6 +11,7 @@ class UploadRecord:
     columns: list[str]
     row_count: int
     header_row: int = 1
+    header_row_start: int | None = None
 
 
 class UploadStore:

@@ -63,6 +63,37 @@ def header_offset_workbook_bytes() -> bytes:
 
 
 @pytest.fixture()
+def multi_level_header_workbook_bytes() -> bytes:
+    """Simulates a customer file with a 2-row header: a higher-order group header row (e.g.
+    "Engine 1"/"Engine 2", typed once and left blank in the cells it spans) above the real
+    field-name row."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Engine 1", None, "Engine 2", None])
+    ws.append(["TSN", "TSO", "TSN", "TSO"])
+    ws.append([12530, 100, 8000, 50])
+    ws.append([13000, 120, 8200, 60])
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
+@pytest.fixture()
+def three_level_header_workbook_bytes() -> bytes:
+    """Simulates a 3-row header to verify the higher-order chaining works recursively for any
+    number of levels, not just two."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Aircraft", None, None, None])
+    ws.append(["Engine 1", None, "Engine 2", None])
+    ws.append(["TSN", "TSO", "TSN", "TSO"])
+    ws.append([12530, 100, 8000, 50])
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
+@pytest.fixture()
 def merged_data_workbook_bytes() -> bytes:
     """Simulates a customer file where a data cell is merged across multiple rows (e.g. a
     department shared by consecutive employees) - the follower row reads blank without unmerge."""

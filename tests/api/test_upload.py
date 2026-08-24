@@ -62,6 +62,73 @@ def test_upload_with_header_row_offset(client, header_offset_workbook_bytes):
     assert body["header_row"] == 2
 
 
+def test_upload_combines_higher_order_header_range(client, multi_level_header_workbook_bytes):
+    """A header_row_start below header_row treats every row in between as a higher-order group
+    header, forward-filled and chained onto the real field name."""
+    response = client.post(
+        "/api/upload",
+        data={"header_row": "2", "header_row_start": "1"},
+        files={
+            "file": (
+                "engines.xlsx",
+                multi_level_header_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["columns"] == [
+        "Engine 1 -> TSN",
+        "Engine 1 -> TSO",
+        "Engine 2 -> TSN",
+        "Engine 2 -> TSO",
+    ]
+    assert body["row_count"] == 2
+    assert body["sample_rows"][0]["Engine 1 -> TSN"] == 12530
+    assert body["header_row"] == 2
+    assert body["header_row_start"] == 1
+
+
+def test_upload_combines_header_range_recursively_for_three_levels(
+    client, three_level_header_workbook_bytes
+):
+    response = client.post(
+        "/api/upload",
+        data={"header_row": "3", "header_row_start": "1"},
+        files={
+            "file": (
+                "aircraft.xlsx",
+                three_level_header_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["columns"] == [
+        "Aircraft -> Engine 1 -> TSN",
+        "Aircraft -> Engine 1 -> TSO",
+        "Aircraft -> Engine 2 -> TSN",
+        "Aircraft -> Engine 2 -> TSO",
+    ]
+
+
+def test_upload_rejects_header_row_start_after_header_row(client, multi_level_header_workbook_bytes):
+    response = client.post(
+        "/api/upload",
+        data={"header_row": "2", "header_row_start": "3"},
+        files={
+            "file": (
+                "engines.xlsx",
+                multi_level_header_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 400
+
+
 def test_upload_rejects_invalid_header_row(client, customer_workbook_bytes):
     response = client.post(
         "/api/upload",

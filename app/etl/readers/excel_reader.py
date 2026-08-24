@@ -39,19 +39,67 @@ def _normalize_cell(value: Any) -> Any:
     return value
 
 
-def _worksheet_to_rows(ws, header_row: int) -> tuple[list[str], list[dict[str, Any]]]:
-    all_rows = list(ws.iter_rows(min_row=max(header_row, 1), values_only=True))
+def _forward_fill_row(row: tuple[Any, ...]) -> list[Any]:
+    """Carry the last non-blank value rightward across a header row - higher-order group
+    headers (e.g. "Engine 1" spanning the "TSN"/"TSO" columns beneath it) are commonly typed
+    once and left blank in the cells they span, rather than actually merged."""
+    filled: list[Any] = []
+    last_seen: Any = None
+    for value in row:
+        value = _normalize_cell(value)
+        last_seen = value if value is not None else last_seen
+        filled.append(last_seen)
+    return filled
+
+
+def _combine_header_levels(header_rows: list[tuple[Any, ...]], num_columns: int) -> list[str]:
+    """Combine a range of header rows into one column name per column: every row except the
+    bottom-most (the real field-name row) is a higher-order group header, forward-filled and
+    chained onto the field name, e.g. "Engine 1 -> TSN". Works for any number of levels."""
+    *group_rows, field_row = header_rows
+    filled_group_rows = [_forward_fill_row(row) for row in group_rows]
+
+    columns: list[str] = []
+    for i in range(num_columns):
+        field_value = field_row[i] if i < len(field_row) else None
+        field_name = str(field_value).strip() if field_value not in (None, "") else ""
+
+        levels = [
+            str(filled[i]).strip()
+            for filled in filled_group_rows
+            if i < len(filled) and filled[i] not in (None, "")
+        ]
+        if field_name:
+            levels.append(field_name)
+
+        columns.append(" -> ".join(levels) if levels else f"Column{i + 1}")
+
+    return columns
+
+
+def _worksheet_to_rows(
+    ws, header_row: int, header_row_start: int | None = None
+) -> tuple[list[str], list[dict[str, Any]]]:
+    min_row = header_row_start if header_row_start and header_row_start < header_row else header_row
+    all_rows = list(ws.iter_rows(min_row=max(min_row, 1), values_only=True))
     if not all_rows:
         return [], []
 
-    header_cells = all_rows[0]
-    columns: list[str] = []
-    for i, cell in enumerate(header_cells):
-        name = str(cell).strip() if cell not in (None, "") else ""
-        columns.append(name or f"Column{i + 1}")
+    header_span = header_row - min_row + 1
+    header_rows = all_rows[:header_span]
+    data_rows = all_rows[header_span:]
+
+    if len(header_rows) > 1:
+        num_columns = max((len(row) for row in header_rows), default=0)
+        columns = _combine_header_levels(header_rows, num_columns)
+    else:
+        columns = []
+        for i, cell in enumerate(header_rows[0]):
+            name = str(cell).strip() if cell not in (None, "") else ""
+            columns.append(name or f"Column{i + 1}")
 
     records: list[dict[str, Any]] = []
-    for raw_row in all_rows[1:]:
+    for raw_row in data_rows:
         # Skip fully-blank trailing rows rather than emitting a row of Nones.
         if all(_normalize_cell(v) is None for v in raw_row):
             continue
@@ -64,18 +112,20 @@ def _worksheet_to_rows(ws, header_row: int) -> tuple[list[str], list[dict[str, A
 
 
 def read_excel_preview(
-    file_path: Path, sample_rows: int = 20, header_row: int = 1
+    file_path: Path, sample_rows: int = 20, header_row: int = 1, header_row_start: int | None = None
 ) -> tuple[list[str], list[dict[str, Any]], int]:
     """Return (columns, sample rows, total row count) for an upload preview."""
     ws = _load_unmerged_worksheet(file_path)
-    columns, records = _worksheet_to_rows(ws, header_row)
+    columns, records = _worksheet_to_rows(ws, header_row, header_row_start)
     return columns, records[:sample_rows], len(records)
 
 
-def read_excel_records(file_path: Path, header_row: int = 1) -> tuple[list[str], list[dict[str, Any]]]:
+def read_excel_records(
+    file_path: Path, header_row: int = 1, header_row_start: int | None = None
+) -> tuple[list[str], list[dict[str, Any]]]:
     """Read the full workbook as (columns, rows) for transformation."""
     ws = _load_unmerged_worksheet(file_path)
-    return _worksheet_to_rows(ws, header_row)
+    return _worksheet_to_rows(ws, header_row, header_row_start)
 
 
 def read_raw_grid(file_path: Path, max_rows: int = 200) -> tuple[list[str], list[list[Any]]]:
