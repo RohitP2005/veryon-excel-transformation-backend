@@ -61,6 +61,20 @@ def test_append_text_operation_returns_none_for_missing_value():
     assert AppendTextOperation().execute([], options={"suffix": " FH"}) is None
 
 
+def test_append_text_operation_joins_multiple_sources_with_separator():
+    result = AppendTextOperation().execute(
+        ["12530", "4321"], options={"separator": " / ", "prefix": "(", "suffix": ")"}
+    )
+    assert result == "(12530 / 4321)"
+
+
+def test_append_text_operation_skips_blank_sources_when_joining():
+    result = AppendTextOperation().execute(
+        ["12530", None, ""], options={"separator": " / ", "suffix": " FH"}
+    )
+    assert result == "12530 FH"
+
+
 def test_duration_format_appends_zero_minutes_for_whole_hours():
     assert DurationFormatOperation().execute(["12530"], options={}) == "12530:00"
 
