@@ -38,6 +38,29 @@ def test_upload_exists_endpoint(client, customer_workbook_bytes):
     assert client.get("/api/upload/does-not-exist/exists").json() == {"exists": False}
 
 
+def test_upload_recovers_after_in_memory_store_is_cleared(client, customer_workbook_bytes):
+    """A backend restart (e.g. `uvicorn --reload` on every code save) wipes the in-memory
+    upload_store but not the uploaded file or its sidecar metadata on disk - get() must recover
+    the record from there instead of reporting the upload as gone."""
+    response = client.post(
+        "/api/upload",
+        files={
+            "file": (
+                "customers.xlsx",
+                customer_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    upload_id = response.json()["upload_id"]
+
+    from app.models.upload_store import upload_store
+
+    upload_store._records.clear()
+
+    assert client.get(f"/api/upload/{upload_id}/exists").json() == {"exists": True}
+
+
 def test_upload_grid_ignores_header_row_offset(client, header_offset_workbook_bytes):
     """The raw grid must show the WHOLE sheet regardless of header_row - including the title
     row above the real headers - so the cell picker can select any value in the sheet."""

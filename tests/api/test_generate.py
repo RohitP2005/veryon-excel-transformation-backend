@@ -206,6 +206,25 @@ def test_generate_returns_400_for_formula_runtime_error(client, pricing_workbook
     assert "NOPE" in response.json()["detail"]
 
 
+def test_generate_succeeds_after_upload_store_memory_is_cleared(client, customer_workbook_bytes):
+    """Reproduces the "template or upload no longer exists" report: a backend restart clears
+    upload_store's in-memory dict, but the uploaded file and its sidecar metadata survive on
+    disk, so generate must still work against an upload_id from before the restart."""
+    upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
+
+    from app.models.upload_store import upload_store
+
+    upload_store._records.clear()
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [{"destination": "Model", "sources": ["ID"], "operation": "copy"}],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
 def test_generate_returns_404_for_unknown_template(client, customer_workbook_bytes):
     upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
     payload = {"template_id": "does-not-exist", "upload_id": upload_id, "mappings": []}
