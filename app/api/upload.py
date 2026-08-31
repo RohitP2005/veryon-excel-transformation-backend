@@ -73,6 +73,15 @@ async def upload_excel(
     )
 
 
+@router.get("/upload/{upload_id}/exists")
+async def upload_exists(upload_id: str) -> dict[str, bool]:
+    """Cheap check the frontend can call as soon as a mapping page loads, so a stale upload_id
+    (e.g. from a session left open across a backend restart - uploads aren't persisted, see
+    UploadStore) surfaces immediately instead of only after the user fills out the whole mapping
+    form and clicks Generate."""
+    return {"exists": upload_store.get(upload_id) is not None}
+
+
 def _validate_extension(filename: str | None) -> None:
     if not filename or not filename.lower().endswith(settings.allowed_upload_extensions):
         raise HTTPException(status_code=400, detail="Only .xlsx files are supported")

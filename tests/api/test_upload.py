@@ -21,6 +21,23 @@ def test_upload_valid_excel_returns_columns_and_preview(client, customer_workboo
     assert body["grid_rows"][1][0] == 1
 
 
+def test_upload_exists_endpoint(client, customer_workbook_bytes):
+    response = client.post(
+        "/api/upload",
+        files={
+            "file": (
+                "customers.xlsx",
+                customer_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    upload_id = response.json()["upload_id"]
+
+    assert client.get(f"/api/upload/{upload_id}/exists").json() == {"exists": True}
+    assert client.get("/api/upload/does-not-exist/exists").json() == {"exists": False}
+
+
 def test_upload_grid_ignores_header_row_offset(client, header_offset_workbook_bytes):
     """The raw grid must show the WHOLE sheet regardless of header_row - including the title
     row above the real headers - so the cell picker can select any value in the sheet."""
