@@ -161,6 +161,51 @@ def test_generate_uses_combined_higher_order_header_column(client, multi_level_h
     assert response.status_code == 200
 
 
+def test_generate_with_excel_style_if_formula(client, pricing_workbook_bytes):
+    upload_id = _upload(client, pricing_workbook_bytes, "pricing.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+            {
+                "destination": "Position",
+                "sources": ["Price", "Quantity"],
+                "operation": "formula",
+                "formula": 'IF({{Quantity}}>2, ROUND({{Price}}*{{Quantity}}, 1), 0)',
+            },
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
+def test_generate_returns_400_for_formula_runtime_error(client, pricing_workbook_bytes):
+    """A formula that fails while evaluating a real row (here, an unknown function) must surface
+    as a 400 with a clear message instead of a bare 500."""
+    upload_id = _upload(client, pricing_workbook_bytes, "pricing.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+            {
+                "destination": "Position",
+                "sources": ["Price"],
+                "operation": "formula",
+                "formula": "NOPE({{Price}})",
+            },
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 400
+    assert "NOPE" in response.json()["detail"]
+
+
 def test_generate_returns_404_for_unknown_template(client, customer_workbook_bytes):
     upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
     payload = {"template_id": "does-not-exist", "upload_id": upload_id, "mappings": []}

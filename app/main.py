@@ -6,6 +6,7 @@ from loguru import logger
 from app.api import formulas, generate, health, templates, upload
 from app.core.config import settings
 from app.core.exceptions import (
+    ETLOperationError,
     JobNotFoundError,
     MappingValidationError,
     SavedFormulaNotFoundError,
@@ -13,6 +14,7 @@ from app.core.exceptions import (
     UploadNotFoundError,
 )
 from app.core.logging import RequestIDMiddleware, configure_logging
+from app.etl.parser.formula_parser import FormulaError
 
 configure_logging()
 
@@ -63,6 +65,16 @@ async def job_not_found_handler(request: Request, exc: JobNotFoundError) -> JSON
 @app.exception_handler(SavedFormulaNotFoundError)
 async def saved_formula_not_found_handler(request: Request, exc: SavedFormulaNotFoundError) -> JSONResponse:
     return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(FormulaError)
+async def formula_error_handler(request: Request, exc: FormulaError) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+@app.exception_handler(ETLOperationError)
+async def etl_operation_error_handler(request: Request, exc: ETLOperationError) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
 
 
 @app.exception_handler(Exception)
