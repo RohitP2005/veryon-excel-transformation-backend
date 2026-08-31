@@ -94,6 +94,22 @@ def three_level_header_workbook_bytes() -> bytes:
 
 
 @pytest.fixture()
+def merged_header_workbook_bytes() -> bytes:
+    """Simulates a customer file where a header cell (e.g. "TSA") is merged across two columns
+    for visual spacing, even though only one of the two columns actually holds data beneath it -
+    unmerging must not surface this as two separate "TSA" columns."""
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["ID", "TSA", None])
+    ws.append([1, 12530, None])
+    ws.append([2, 13000, None])
+    ws.merge_cells("B1:C1")
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
+@pytest.fixture()
 def merged_data_workbook_bytes() -> bytes:
     """Simulates a customer file where a data cell is merged across multiple rows (e.g. a
     department shared by consecutive employees) - the follower row reads blank without unmerge."""

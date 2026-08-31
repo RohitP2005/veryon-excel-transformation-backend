@@ -161,6 +161,26 @@ def test_upload_unmerges_merged_data_cells(client, merged_data_workbook_bytes):
     assert body["sample_rows"][1]["Department"] == "Engineering"
 
 
+def test_upload_dedupes_header_cell_merged_across_columns(client, merged_header_workbook_bytes):
+    """A header merged across two columns (e.g. "TSA" spanning J:K) must surface as a single
+    column, not one duplicate per cell the merge covers."""
+    response = client.post(
+        "/api/upload",
+        files={
+            "file": (
+                "tsa.xlsx",
+                merged_header_workbook_bytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["columns"] == ["ID", "TSA"]
+    assert body["sample_rows"][0] == {"ID": 1, "TSA": 12530}
+    assert body["sample_rows"][1] == {"ID": 2, "TSA": 13000}
+
+
 def test_upload_rejects_non_excel_extension(client):
     response = client.post("/api/upload", files={"file": ("notes.txt", b"hello", "text/plain")})
     assert response.status_code == 400

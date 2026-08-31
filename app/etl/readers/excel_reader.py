@@ -77,6 +77,24 @@ def _combine_header_levels(header_rows: list[tuple[Any, ...]], num_columns: int)
     return columns
 
 
+def _dedupe_columns(columns: list[str]) -> tuple[list[str], list[list[int]]]:
+    """Collapse columns that share the same header name into one logical column, keeping
+    first-seen order. A header cell merged across several columns (e.g. "TSA" spanning J:K) is
+    back-filled identically into every cell it spans, so it would otherwise surface as one
+    duplicate column per cell it covers - we only want the single "TSA" column back.
+
+    Returns the deduped names plus, for each, the original column indices it was built from.
+    """
+    index_groups: dict[str, list[int]] = {}
+    order: list[str] = []
+    for i, name in enumerate(columns):
+        if name not in index_groups:
+            index_groups[name] = []
+            order.append(name)
+        index_groups[name].append(i)
+    return order, [index_groups[name] for name in order]
+
+
 def _worksheet_to_rows(
     ws, header_row: int, header_row_start: int | None = None
 ) -> tuple[list[str], list[dict[str, Any]]]:
@@ -91,21 +109,30 @@ def _worksheet_to_rows(
 
     if len(header_rows) > 1:
         num_columns = max((len(row) for row in header_rows), default=0)
-        columns = _combine_header_levels(header_rows, num_columns)
+        raw_columns = _combine_header_levels(header_rows, num_columns)
     else:
-        columns = []
+        raw_columns = []
         for i, cell in enumerate(header_rows[0]):
             name = str(cell).strip() if cell not in (None, "") else ""
-            columns.append(name or f"Column{i + 1}")
+            raw_columns.append(name or f"Column{i + 1}")
+
+    columns, index_groups = _dedupe_columns(raw_columns)
 
     records: list[dict[str, Any]] = []
     for raw_row in data_rows:
         # Skip fully-blank trailing rows rather than emitting a row of Nones.
         if all(_normalize_cell(v) is None for v in raw_row):
             continue
-        record = {
-            columns[i]: _normalize_cell(raw_row[i]) for i in range(len(columns)) if i < len(raw_row)
-        }
+        record: dict[str, Any] = {}
+        for name, indices in zip(columns, index_groups):
+            value = None
+            for idx in indices:
+                if idx < len(raw_row):
+                    candidate = _normalize_cell(raw_row[idx])
+                    if candidate is not None:
+                        value = candidate
+                        break
+            record[name] = value
         records.append(record)
 
     return columns, records
