@@ -7,6 +7,7 @@ from app.etl.operations.duration_format import DurationFormatOperation
 from app.etl.operations.duration_pair_merge import DurationPairMergeOperation
 from app.etl.operations.multiply import MultiplyOperation
 from app.etl.operations.replace import ReplaceOperation
+from app.etl.operations.slice_text import SliceOperation
 from app.etl.operations.text_case import LowercaseOperation, UppercaseOperation
 from app.etl.operations.trim import TrimOperation
 
@@ -104,6 +105,32 @@ def test_duration_pair_merge_skips_missing_values():
     assert DurationPairMergeOperation().execute([None, 4321], options={}) == "4321 FC"
     assert DurationPairMergeOperation().execute([12530], options={}) == "12530:00 FH"
     assert DurationPairMergeOperation().execute([], options={}) == ""
+
+
+def test_slice_operation_positive_length_takes_from_start():
+    assert SliceOperation().execute(["ABC12345"], options={"length": 3}) == "ABC"
+
+
+def test_slice_operation_negative_length_takes_from_end():
+    assert SliceOperation().execute(["ABC12345"], options={"length": -4}) == "2345"
+
+
+def test_slice_operation_trims_whitespace_by_default_before_slicing():
+    assert SliceOperation().execute(["  ABC12345  "], options={"length": 3}) == "ABC"
+    assert SliceOperation().execute(["  ABC12345  "], options={"length": -3}) == "345"
+
+
+def test_slice_operation_can_disable_trim():
+    result = SliceOperation().execute(["  ABC  "], options={"length": 3, "trim": False})
+    assert result == "  A"
+
+
+def test_slice_operation_without_length_returns_trimmed_value():
+    assert SliceOperation().execute(["  hello  "], options={}) == "hello"
+
+
+def test_slice_operation_returns_none_for_missing_value():
+    assert SliceOperation().execute([], options={"length": 3}) is None
 
 
 def test_replace_operation_substitutes_text():

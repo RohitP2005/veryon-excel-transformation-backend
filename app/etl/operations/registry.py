@@ -9,6 +9,7 @@ from app.etl.operations.duration_pair_merge import DurationPairMergeOperation
 from app.etl.operations.formula import FormulaOperation
 from app.etl.operations.multiply import MultiplyOperation
 from app.etl.operations.replace import ReplaceOperation
+from app.etl.operations.slice_text import SliceOperation
 from app.etl.operations.text_case import LowercaseOperation, UppercaseOperation
 from app.etl.operations.trim import TrimOperation
 from app.schemas.mapping import Operation
@@ -27,6 +28,7 @@ _REGISTRY: dict[Operation, BaseOperation] = {
     Operation.APPEND_TEXT: AppendTextOperation(),
     Operation.DURATION_FORMAT: DurationFormatOperation(),
     Operation.DURATION_PAIR_MERGE: DurationPairMergeOperation(),
+    Operation.SLICE: SliceOperation(),
 }
 
 

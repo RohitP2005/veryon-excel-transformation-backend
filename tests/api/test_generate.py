@@ -110,6 +110,21 @@ def test_generate_appends_prefix_suffix_and_formats_duration(client, customer_wo
     assert response.status_code == 200
 
 
+def test_generate_with_slice_operation(client, customer_workbook_bytes):
+    upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": ["Name"], "operation": "slice", "options": {"length": 3}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
 def test_generate_with_duration_pair_merge_operation(client, pricing_workbook_bytes):
     """Mirrors the TSN/CSN example: extract+format the first value, suffix both, merge."""
     upload_id = _upload(client, pricing_workbook_bytes, "pricing.xlsx")
