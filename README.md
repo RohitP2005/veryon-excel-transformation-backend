@@ -50,7 +50,7 @@ app/
 │   ├── operations/  # One class per transformation + a registry
 │   ├── parser/      # Safe formula placeholder substitution/evaluation
 │   └── validators/  # Mapping business-rule validation
-├── models/         # In-memory template registry, upload store, and saved-formula store (MVP, no DB yet)
+├── models/         # Template registry + custom-template store, upload store, and saved-formula store (MVP, no DB yet)
 ├── schemas/        # Pydantic request/response models
 ├── templates/      # Built-in template definitions (JSON)
 ├── uploads/        # Uploaded files (gitignored contents)
@@ -70,5 +70,8 @@ tests/
 - Saved formulas (the reusable-operation library) are persisted to a flat JSON file under the
   system temp dir — durable across restarts on a traditional host, but ephemeral per-instance
   on serverless deploys (same caveat as uploads/output; see `ETL_FORMULAS_FILE`).
+- Templates added via `POST /api/templates` use the same flat-JSON-file pattern (see
+  `ETL_CUSTOM_TEMPLATES_FILE`) and share the same serverless caveat; the 7 built-in templates in
+  `app/templates/*.json` are unaffected since they ship with the code.
 - `/api/generate` runs synchronously; large files should eventually move to a background job
   (Celery, per the future stack).

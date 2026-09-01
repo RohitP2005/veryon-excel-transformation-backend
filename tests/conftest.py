@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from openpyxl import Workbook
 
 from app.main import app
+from app.models.custom_template_store import custom_template_store
 from app.models.formula_store import formula_store
 
 
@@ -19,6 +20,13 @@ def _reset_formula_store():
     formula_store._write([])
     yield
     formula_store._write([])
+
+
+@pytest.fixture(autouse=True)
+def _reset_custom_template_store():
+    custom_template_store._write([])
+    yield
+    custom_template_store._write([])
 
 
 def _build_workbook(headers: list[str], rows: list[list]) -> bytes:
