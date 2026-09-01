@@ -147,7 +147,7 @@ def test_generate_with_duration_pair_merge_operation(client, pricing_workbook_by
 
 
 def test_generate_uses_combined_higher_order_header_column(client, multi_level_header_workbook_bytes):
-    """Columns produced by a header_row_start range (e.g. "Engine 1 -> TSN") must be usable as
+    """Columns produced by a header_row_start range (e.g. "TSN -> Engine 1") must be usable as
     mapping sources at generate time, proving the same range is applied to the full read."""
     response = client.post(
         "/api/upload",
@@ -169,7 +169,7 @@ def test_generate_uses_combined_higher_order_header_column(client, multi_level_h
         "mappings": [
             {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
             {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
-            {"destination": "Position", "sources": ["Engine 1 -> TSN"], "operation": "copy"},
+            {"destination": "Position", "sources": ["TSN -> Engine 1"], "operation": "copy"},
         ],
     }
     response = client.post("/api/generate", json=payload)

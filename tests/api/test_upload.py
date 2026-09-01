@@ -119,13 +119,13 @@ def test_upload_combines_higher_order_header_range(client, multi_level_header_wo
     assert response.status_code == 200
     body = response.json()
     assert body["columns"] == [
-        "Engine 1 -> TSN",
-        "Engine 1 -> TSO",
-        "Engine 2 -> TSN",
-        "Engine 2 -> TSO",
+        "TSN -> Engine 1",
+        "TSO -> Engine 1",
+        "TSN -> Engine 2",
+        "TSO -> Engine 2",
     ]
     assert body["row_count"] == 2
-    assert body["sample_rows"][0]["Engine 1 -> TSN"] == 12530
+    assert body["sample_rows"][0]["TSN -> Engine 1"] == 12530
     assert body["header_row"] == 2
     assert body["header_row_start"] == 1
 
@@ -147,10 +147,10 @@ def test_upload_combines_header_range_recursively_for_three_levels(
     assert response.status_code == 200
     body = response.json()
     assert body["columns"] == [
-        "Aircraft -> Engine 1 -> TSN",
-        "Aircraft -> Engine 1 -> TSO",
-        "Aircraft -> Engine 2 -> TSN",
-        "Aircraft -> Engine 2 -> TSO",
+        "TSN -> Engine 1 -> Aircraft",
+        "TSO -> Engine 1 -> Aircraft",
+        "TSN -> Engine 2 -> Aircraft",
+        "TSO -> Engine 2 -> Aircraft",
     ]
 
 

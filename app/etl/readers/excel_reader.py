@@ -55,7 +55,8 @@ def _forward_fill_row(row: tuple[Any, ...]) -> list[Any]:
 def _combine_header_levels(header_rows: list[tuple[Any, ...]], num_columns: int) -> list[str]:
     """Combine a range of header rows into one column name per column: every row except the
     bottom-most (the real field-name row) is a higher-order group header, forward-filled and
-    chained onto the field name, e.g. "Engine 1 -> TSN". Works for any number of levels."""
+    chained onto the field name, e.g. "TSN -> Engine 1" (sub-heading first, then its heading(s),
+    outermost last). Works for any number of levels."""
     *group_rows, field_row = header_rows
     filled_group_rows = [_forward_fill_row(row) for row in group_rows]
 
@@ -71,6 +72,7 @@ def _combine_header_levels(header_rows: list[tuple[Any, ...]], num_columns: int)
         ]
         if field_name:
             levels.append(field_name)
+        levels.reverse()
 
         columns.append(" -> ".join(levels) if levels else f"Column{i + 1}")
 
