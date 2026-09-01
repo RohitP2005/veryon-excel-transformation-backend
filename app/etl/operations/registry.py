@@ -4,6 +4,7 @@ from app.etl.operations.concatenate import ConcatenateOperation
 from app.etl.operations.constant import ConstantOperation
 from app.etl.operations.copy import CopyOperation
 from app.etl.operations.date_format import DateFormatOperation
+from app.etl.operations.date_standardize import DateStandardizeOperation
 from app.etl.operations.duration_format import DurationFormatOperation
 from app.etl.operations.duration_pair_merge import DurationPairMergeOperation
 from app.etl.operations.formula import FormulaOperation
@@ -24,6 +25,7 @@ _REGISTRY: dict[Operation, BaseOperation] = {
     Operation.FORMULA: FormulaOperation(),
     Operation.REPLACE: ReplaceOperation(),
     Operation.DATE_FORMAT: DateFormatOperation(),
+    Operation.DATE_STANDARDIZE: DateStandardizeOperation(),
     Operation.CONSTANT: ConstantOperation(),
     Operation.APPEND_TEXT: AppendTextOperation(),
     Operation.DURATION_FORMAT: DurationFormatOperation(),

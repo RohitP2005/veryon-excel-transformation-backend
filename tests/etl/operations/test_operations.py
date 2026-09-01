@@ -3,6 +3,7 @@ from app.etl.operations.concatenate import ConcatenateOperation
 from app.etl.operations.constant import ConstantOperation
 from app.etl.operations.copy import CopyOperation
 from app.etl.operations.date_format import DateFormatOperation
+from app.etl.operations.date_standardize import DateStandardizeOperation
 from app.etl.operations.duration_format import DurationFormatOperation
 from app.etl.operations.duration_pair_merge import DurationPairMergeOperation
 from app.etl.operations.multiply import MultiplyOperation
@@ -133,6 +134,20 @@ def test_slice_operation_returns_none_for_missing_value():
     assert SliceOperation().execute([], options={"length": 3}) is None
 
 
+def test_slice_operation_retain_false_drops_from_start():
+    result = SliceOperation().execute(["ABC12345"], options={"length": 4, "retain": False})
+    assert result == "2345"
+
+
+def test_slice_operation_retain_false_drops_from_end():
+    result = SliceOperation().execute(["ABC12345"], options={"length": -4, "retain": False})
+    assert result == "ABC1"
+
+
+def test_slice_operation_retain_true_matches_default_keep_behavior():
+    assert SliceOperation().execute(["ABC12345"], options={"length": 4, "retain": True}) == "ABC1"
+    assert SliceOperation().execute(["ABC12345"], options={"length": -4, "retain": True}) == "2345"
+
 def test_replace_operation_substitutes_text():
     result = ReplaceOperation().execute(["hello world"], options={"find": "world", "replace": "there"})
     assert result == "hello there"
@@ -141,6 +156,34 @@ def test_replace_operation_substitutes_text():
 def test_date_format_operation_formats_iso_string():
     result = DateFormatOperation().execute(["2026-01-05T00:00:00"], options={"format": "%d/%m/%Y"})
     assert result == "05/01/2026"
+
+
+def test_date_standardize_handles_day_first_format():
+    assert DateStandardizeOperation().execute(["13/04/2005"], options={}) == "13-Apr-2005"
+
+
+def test_date_standardize_handles_year_first_format():
+    assert DateStandardizeOperation().execute(["2005-04-13"], options={}) == "13-Apr-2005"
+
+
+def test_date_standardize_handles_us_month_first_format():
+    # Unambiguous only because 13 can't be a month; falls through to %m/%d/%Y.
+    assert DateStandardizeOperation().execute(["04/13/2005"], options={}) == "13-Apr-2005"
+
+
+def test_date_standardize_handles_datetime_object():
+    from datetime import datetime
+
+    value = datetime(2005, 4, 13)  # noqa: DTZ001
+    assert DateStandardizeOperation().execute([value], options={}) == "13-Apr-2005"
+
+
+def test_date_standardize_leaves_unparseable_value_unchanged():
+    assert DateStandardizeOperation().execute(["not a date"], options={}) == "not a date"
+
+
+def test_date_standardize_returns_none_for_missing_value():
+    assert DateStandardizeOperation().execute([], options={}) is None
 
 
 def test_constant_operation_returns_configured_value():

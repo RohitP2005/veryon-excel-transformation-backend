@@ -14,6 +14,7 @@ class Operation(str, Enum):
     FORMULA = "formula"
     REPLACE = "replace"
     DATE_FORMAT = "date_format"
+    DATE_STANDARDIZE = "date_standardize"
     CONSTANT = "constant"
     APPEND_TEXT = "append_text"
     DURATION_FORMAT = "duration_format"

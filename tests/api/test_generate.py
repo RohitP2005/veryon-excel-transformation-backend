@@ -125,6 +125,42 @@ def test_generate_with_slice_operation(client, customer_workbook_bytes):
     assert response.status_code == 200
 
 
+def test_generate_with_slice_operation_retain_false(client, customer_workbook_bytes):
+    upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {
+                "destination": "Model",
+                "sources": ["Name"],
+                "operation": "slice",
+                "options": {"length": 2, "retain": False},
+            },
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
+def test_generate_with_date_standardize_operation(client, customer_workbook_bytes):
+    upload_id = _upload(client, customer_workbook_bytes, "customers.xlsx")
+
+    payload = {
+        "template_id": "model_tree",
+        "upload_id": upload_id,
+        "mappings": [
+            {"destination": "Model", "sources": [], "operation": "constant", "options": {"value": "M-1"}},
+            {"destination": "HigherModel", "sources": [], "operation": "constant", "options": {"value": "H-1"}},
+            {"destination": "Position", "sources": ["Name"], "operation": "date_standardize"},
+        ],
+    }
+    response = client.post("/api/generate", json=payload)
+    assert response.status_code == 200
+
+
 def test_generate_with_duration_pair_merge_operation(client, pricing_workbook_bytes):
     """Mirrors the TSN/CSN example: extract+format the first value, suffix both, merge."""
     upload_id = _upload(client, pricing_workbook_bytes, "pricing.xlsx")

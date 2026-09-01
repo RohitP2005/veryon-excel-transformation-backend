@@ -4,9 +4,12 @@ from typing import Any
 class SliceOperation:
     """Trims whitespace (by default) then slices a substring of a single value.
 
-    options["length"]: positive takes that many characters from the start (like Excel LEFT),
-    negative takes that many characters from the end (like Excel RIGHT). Missing/blank length
-    returns the (optionally trimmed) value unsliced.
+    options["length"]: positive counts from the start, negative counts from the end. Missing/
+    blank length returns the (optionally trimmed) value unsliced.
+    options["retain"] (default True): when True, `length` characters are KEPT from that end
+    (e.g. length=4 keeps the first 4 characters like Excel LEFT, length=-4 keeps the last 4 like
+    RIGHT). When False, `length` characters are REMOVED from that end instead, keeping the rest
+    (length=4 drops the first 4 characters, length=-4 drops the last 4).
     options["trim"]: whether to strip whitespace before slicing (default True).
     """
 
@@ -28,4 +31,6 @@ class SliceOperation:
         except (TypeError, ValueError):
             return text
 
-        return text[:length] if length >= 0 else text[length:]
+        if options.get("retain", True):
+            return text[:length] if length >= 0 else text[length:]
+        return text[length:] if length >= 0 else text[:length]
